@@ -2,10 +2,18 @@ import { app } from "../../scripts/app.js";
 
 const NODE_NAME = "MiniMaxH3ReferenceToVideo";
 
-function numberedInputs(node, prefix) {
+function inputBaseName(input) {
+    const name = String(input?.name || "");
+    return name.slice(name.lastIndexOf(".") + 1);
+}
+
+function numberedInputs(node, group, prefix) {
     return (node.inputs || [])
-        .filter((input) => input.name?.startsWith(prefix))
-        .sort((a, b) => Number(a.name.slice(prefix.length)) - Number(b.name.slice(prefix.length)));
+        .filter((input) => {
+            const name = String(input?.name || "");
+            return (name.startsWith(`${group}.`) || !name.includes(".")) && inputBaseName(input).startsWith(prefix);
+        })
+        .sort((a, b) => Number(inputBaseName(a).slice(prefix.length)) - Number(inputBaseName(b).slice(prefix.length)));
 }
 
 function isConnected(input) {
@@ -21,10 +29,10 @@ function labelReferences(inputs, kind) {
 }
 
 function updateLabels(node) {
-    const pictures = numberedInputs(node, "ref_image_");
-    const videos = numberedInputs(node, "ref_video_").filter((input) => !input.name.startsWith("ref_video_audio_"));
-    const videoAudio = numberedInputs(node, "ref_video_audio_");
-    const audio = numberedInputs(node, "ref_audio_");
+    const pictures = numberedInputs(node, "ref_images", "ref_image_");
+    const videos = numberedInputs(node, "ref_videos", "ref_video_");
+    const videoAudio = numberedInputs(node, "ref_video_audios", "ref_video_audio_");
+    const audio = numberedInputs(node, "ref_audios", "ref_audio_");
 
     labelReferences(pictures, "Picture");
     labelReferences(videos, "Video");
@@ -32,15 +40,15 @@ function updateLabels(node) {
     const videoNumbers = new Map();
     let videoNumber = 1;
     for (const input of videos) {
-        const suffix = input.name.slice("ref_video_".length);
+        const suffix = inputBaseName(input).slice("ref_video_".length);
         videoNumbers.set(suffix, videoNumber);
         if (isConnected(input)) videoNumber++;
     }
 
     let audioNumber = 1;
     for (const input of videoAudio) {
-        const suffix = input.name.slice("ref_video_audio_".length);
-        const video = videos.find((item) => item.name === `ref_video_${suffix}`);
+        const suffix = inputBaseName(input).slice("ref_video_audio_".length);
+        const video = videos.find((item) => inputBaseName(item) === `ref_video_${suffix}`);
         const paired = isConnected(video) && isConnected(input);
         input.label = `Audio_${audioNumber} (Video_${videoNumbers.get(suffix) ?? Number(suffix) + 1})`;
         if (paired) audioNumber++;
@@ -55,7 +63,10 @@ function updateLabels(node) {
 }
 
 function queueLabelUpdate(node) {
-    queueMicrotask(() => updateLabels(node));
+    queueMicrotask(() => {
+        updateLabels(node);
+        requestAnimationFrame(() => updateLabels(node));
+    });
 }
 
 app.registerExtension({
