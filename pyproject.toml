@@ -1,0 +1,12 @@
+[project]
+name = "h3-reference-labels"
+version = "1.0.0"
+description = "Display prompt-ready Picture, Video, and Audio labels on ComfyUI's MiniMax H3 reference node."
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/ethanfel/ComfyUI-H3-Reference-Labels"
+
+[tool.comfy]
+PublisherId = "ethanfel"
+DisplayName = "MiniMax H3 Reference Labels"

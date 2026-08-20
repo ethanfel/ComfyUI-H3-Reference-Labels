@@ -11,6 +11,14 @@ Only the visible labels change. The official node's internal input names and sav
 
 ## Install
 
+Install from the Comfy Registry / ComfyUI Manager by searching for **MiniMax H3 Reference Labels**, or with Comfy CLI:
+
+```bash
+comfy node install h3-reference-labels
+```
+
+For a Git installation:
+
 ```bash
 cd ComfyUI/custom_nodes
 git clone https://github.com/ethanfel/ComfyUI-H3-Reference-Labels.git
